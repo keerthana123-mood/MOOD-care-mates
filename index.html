@@ -203,3 +203,43 @@
   drawChart();
 </script></body>
 </html>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+<canvas id="moodChart" width="400" height="200" style="margin: 20px auto; display: block;"></canvas>
+
+<script>
+  
+  window.onload = function() {
+    const ctx = document.getElementById('moodChart').getContext('2d');
+
+    const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+    const moodScores = [3, 4, 2, 5, 4];
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Mood Tracker',
+          data: moodScores,
+          borderColor: 'blue',
+          backgroundColor: 'lightblue',
+          fill: true,
+          tension: 0.3,
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 5
+          }
+        }
+      }
+    });
+  };
+</script>
