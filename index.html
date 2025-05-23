@@ -1,0 +1,205 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MoodCare – Mood Tracker</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #e0eafc, #cfdef3);
+      display: flex;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      max-width: 650px;
+      width: 100%;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      border-radius: 20px;
+    }
+    .logo {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .logo img {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 4px solid #6366f1;
+    }
+    h1 {
+      text-align: center;
+      color: #4338ca;
+      font-size: 26px;
+      margin-bottom: 25px;
+    }
+    .mood {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+      gap: 12px;
+      margin-bottom: 25px;
+    }
+    .mood button {
+      font-size: 24px;
+      padding: 15px;
+      border: 2px solid #e5e7eb;
+      background: #f9fafb;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .mood button:hover {
+      background-color: #dbeafe;
+      transform: scale(1.05);
+    }
+    textarea {
+      width: 100%;
+      height: 90px;
+      padding: 12px;
+      font-size: 15px;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      resize: none;
+      margin-bottom: 20px;
+    }
+    .submit {
+      width: 100%;
+      background-color: #4f46e5;
+      color: white;
+      padding: 14px;
+      font-size: 16px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+    .submit:hover {
+      background-color: #4338ca;
+    }
+    .history {
+      margin-top: 30px;
+    }
+    .entry {
+      background: #f3f4f6;
+      padding: 12px 16px;
+      border-left: 6px solid #6366f1;
+      margin-bottom: 12px;
+      border-radius: 10px;
+    }
+    canvas {
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body><div class="container">
+  <div class="logo">
+    <img src="logo.jpg" alt="MoodCare Logo" />
+  </div>  <h1>MoodCare – How do you feel today?</h1>  <div class="mood">
+    <button onclick="selectMood('😊')">😊</button>
+    <button onclick="selectMood('😔')">😔</button>
+    <button onclick="selectMood('😡')">😡</button>
+    <button onclick="selectMood('😐')">😐</button>
+    <button onclick="selectMood('😃')">😃</button>
+  </div>  <textarea id="note" placeholder="Want to share something?"></textarea><button class="submit" onclick="saveMood()">Save Mood</button>
+
+  <div class="history" id="history">
+    <h2>Your Mood Journal</h2>
+  </div><canvas id="moodChart" width="400" height="200"></canvas>
+
+</div><script>
+  let selectedMood = '';
+  const moodMap = {
+    '😊': 3,
+    '😔': 1,
+    '😡': 0,
+    '😐': 2,
+    '😃': 4
+  };
+
+  function selectMood(mood) {
+    selectedMood = mood;
+    alert("Mood selected: " + mood);
+  }
+
+  function saveMood() {
+    const note = document.getElementById('note').value;
+    if (!selectedMood) {
+      alert("Please select a mood.");
+      return;
+    }
+
+    const entry = {
+      mood: selectedMood,
+      note: note,
+      date: new Date().toLocaleString()
+    };
+
+    let data = JSON.parse(localStorage.getItem('moodData')) || [];
+    data.push(entry);
+    localStorage.setItem('moodData', JSON.stringify(data));
+    displayHistory();
+    drawChart();
+    document.getElementById('note').value = '';
+    selectedMood = '';
+  }
+
+  function displayHistory() {
+    const history = document.getElementById('history');
+    const data = JSON.parse(localStorage.getItem('moodData')) || [];
+    history.innerHTML = '<h2>Your Mood Journal</h2>';
+    data.slice().reverse().forEach(entry => {
+      history.innerHTML += `
+        <div class="entry">
+          <strong>${entry.mood}</strong> – ${entry.date}<br/>
+          <em>${entry.note}</em>
+        </div>`;
+    });
+  }
+
+  function drawChart() {
+    const ctx = document.getElementById('moodChart').getContext('2d');
+    const data = JSON.parse(localStorage.getItem('moodData')) || [];
+    const labels = data.map(e => e.date);
+    const moodScores = data.map(e => moodMap[e.mood]);
+
+    if (window.moodChartInstance) {
+      window.moodChartInstance.destroy();
+    }
+
+    window.moodChartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Mood Trend',
+          data: moodScores,
+          backgroundColor: 'rgba(99, 102, 241, 0.2)',
+          borderColor: '#6366f1',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.4,
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            min: 0,
+            max: 4,
+            ticks: {
+              callback: function(value) {
+                return ['😡','😔','😐','😊','😃'][value];
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  displayHistory();
+  drawChart();
+</script></body>
+</html>
